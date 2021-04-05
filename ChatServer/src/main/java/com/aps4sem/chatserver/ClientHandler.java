@@ -1,7 +1,6 @@
 package com.aps4sem.chatserver;
 
-import com.aps4sem.chatlibrary.ClientRequests;
-import com.aps4sem.chatlibrary.SocketObjectStreams;
+import com.aps4sem.chatlibrary.*;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.logging.Level;
@@ -11,6 +10,8 @@ public class ClientHandler implements Runnable {
 
     private final Socket clientSocket;
     private final SocketObjectStreams streams;
+    
+    private String user = null;
 
     public ClientHandler(Socket clientSocket) throws IOException
     {
@@ -21,15 +22,26 @@ public class ClientHandler implements Runnable {
     @Override
     public void run()
     {
-        ClientRequests requests;
+        ClientRequest requests;
         
-        try (clientSocket) {
-            while ((requests = (ClientRequests) streams.receive()) != ClientRequests.QUIT)
+        try {
+            
+            while (!clientSocket.isClosed())
             {
-                streams.send("Ok!");
+                requests = (ClientRequest) streams.receive();
+                        
+                switch (requests)
+                {
+                    case LOGIN:
+                        handleLogin((String[]) streams.receive());
+                        break;
+                    case QUIT:
+                        clientSocket.close();
+                        break;
+                }
             }
             
-            streams.send("Encerrando a conexão!");
+            System.out.println("[ClientHandler] Conexão com o usuário " + user + " encerrada.");
         }
         catch (IOException ex) {
             Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, null, ex);
@@ -37,5 +49,25 @@ public class ClientHandler implements Runnable {
         catch (ClassNotFoundException ex) {
             Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    private void handleLogin(String[] tokens) throws IOException
+    {
+        if (tokens != null && tokens.length == 2)
+        {
+            user = tokens[0];
+            String password = tokens[1];
+
+            if ((user.equals("guest") && password.equals("guest")) || (user.equals("admin") && password.equals("admin")))
+            {
+                streams.send(ServerResponse.LOGIN_ALLOWED);
+                System.out.println("[ClientHandler] Usuário " + user + " - conectado com sucesso!");
+                return;
+            }
+        }
+            
+        streams.send(ServerResponse.LOGIN_DENIED);
+        System.out.println("[ClientHandler] Usuário " + user + " - acesso negado.");
+        clientSocket.close();
     }
 }

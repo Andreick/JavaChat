@@ -13,22 +13,8 @@ public class ServerMain {
 
     public static void main(String[] args)
     {
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-
-            while (true) {
-                System.out.println("[SERVIDOR] Esperando conexão com o cliente...");
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("[SERVIDOR] Conectado ao cliente!");
-
-                ClientHandler clientHandler = new ClientHandler(clientSocket);
-                new Thread(clientHandler).start();
-            }
-        }
-        catch (BindException ex) {
-            Logger.getLogger(ServerMain.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        catch (IOException ex) {
-            Logger.getLogger(ServerMain.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        Server server = new Server(PORT);
+        
+        
     }
 }
