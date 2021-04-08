@@ -28,9 +28,9 @@ public class Login extends javax.swing.JFrame {
         pn_principal = new javax.swing.JPanel();
         lb_titulo = new javax.swing.JLabel();
         lb_usuario = new javax.swing.JLabel();
-        lb_porta = new javax.swing.JLabel();
+        lb_senha = new javax.swing.JLabel();
         tf_usuario = new javax.swing.JTextField();
-        tf_porta = new javax.swing.JTextField();
+        tf_senha = new javax.swing.JTextField();
         bt_conectar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -48,20 +48,20 @@ public class Login extends javax.swing.JFrame {
         lb_titulo.setBounds(10, 10, 380, 120);
 
         lb_usuario.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lb_usuario.setText("Apelido");
+        lb_usuario.setText("Usuário");
         lb_usuario.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         pn_principal.add(lb_usuario);
         lb_usuario.setBounds(10, 150, 100, 40);
 
-        lb_porta.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lb_porta.setText("Porta");
-        lb_porta.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-        pn_principal.add(lb_porta);
-        lb_porta.setBounds(10, 200, 100, 40);
+        lb_senha.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lb_senha.setText("Senha");
+        lb_senha.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        pn_principal.add(lb_senha);
+        lb_senha.setBounds(10, 200, 100, 40);
         pn_principal.add(tf_usuario);
         tf_usuario.setBounds(120, 150, 270, 40);
-        pn_principal.add(tf_porta);
-        tf_porta.setBounds(120, 200, 270, 40);
+        pn_principal.add(tf_senha);
+        tf_senha.setBounds(120, 200, 270, 40);
 
         bt_conectar.setText("Conectar");
         bt_conectar.addActionListener(new java.awt.event.ActionListener() {
@@ -90,21 +90,21 @@ public class Login extends javax.swing.JFrame {
     private void bt_conectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_conectarActionPerformed
         
         try {
-            Socket serverSocket = new Socket(SERVER_IP, SERVER_PORT);
-            SocketObjectStreams streams = new SocketObjectStreams(serverSocket);
+            Socket clientSocket = new Socket(SERVER_IP, SERVER_PORT);
             
             String user = tf_usuario.getText();
-            String password = tf_porta.getText();
+            String password = tf_senha.getText();
             
-            streams.send(ClientRequest.LOGIN);
-            streams.send(new String[] {user, password});
+            SocketStream.send(clientSocket, ClientRequest.LOGIN);
+            SocketStream.send(clientSocket, new String[] {user, password});
             
-            ServerResponse response = (ServerResponse) streams.receive();
+            ServerMessage response = (ServerMessage) SocketStream.receive(clientSocket);
             
             switch (response)
             {
                 case LOGIN_ALLOWED:
-                    JOptionPane.showMessageDialog(null, "Bem-vindo!", "", JOptionPane.OK_OPTION);
+                    new Home(clientSocket, user).setVisible(true);
+                    this.dispose();
                     break;
                 case LOGIN_DENIED:
                     JOptionPane.showMessageDialog(null, "Usuário ou senha inválidos.", "Erro", JOptionPane.ERROR_MESSAGE);
@@ -112,7 +112,7 @@ public class Login extends javax.swing.JFrame {
             }
             
             tf_usuario.setText("");
-            tf_porta.setText("");
+            tf_senha.setText("");
         }
         catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "Verifique se o servidor está em execução!", "Erro", JOptionPane.ERROR_MESSAGE);
@@ -146,11 +146,11 @@ public class Login extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton bt_conectar;
-    private javax.swing.JLabel lb_porta;
+    private javax.swing.JLabel lb_senha;
     private javax.swing.JLabel lb_titulo;
     private javax.swing.JLabel lb_usuario;
     private javax.swing.JPanel pn_principal;
-    private javax.swing.JTextField tf_porta;
+    private javax.swing.JTextField tf_senha;
     private javax.swing.JTextField tf_usuario;
     // End of variables declaration//GEN-END:variables
 

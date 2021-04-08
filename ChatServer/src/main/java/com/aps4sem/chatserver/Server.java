@@ -10,10 +10,16 @@ import java.util.logging.Logger;
 public class Server implements Runnable {
 
     private final int serverPort;
+    
+    //private List<ClientHandler> clientHandlers = new ArrayList<>();
 
     public Server(int serverPort) {
         this.serverPort = serverPort;
     }
+
+    /*public List<ClientHandler> getClientHandlers() {
+        return clientHandlers;
+    }*/
 
     @Override
     public void run() {
@@ -25,7 +31,9 @@ public class Server implements Runnable {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("[SERVIDOR] Novo usuário conectado.");
 
-                ClientHandler clientHandler = new ClientHandler(clientSocket);
+                ClientHandler clientHandler = new ClientHandler(this, clientSocket);
+                //clientHandlers.add(clientHandler);
+                
                 new Thread(clientHandler).start();
             }
         }
