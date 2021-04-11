@@ -1,19 +1,16 @@
-package com.aps4sem.chatclient;
+package com.aps4sem.chatclient.screens;
 
-import com.aps4sem.chatlibrary.*;
-import java.io.IOException;
-import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.aps4sem.chatclient.classes.User;
+import com.aps4sem.chatclient.interfaces.UsersStatusListener;
 
-public class Home extends javax.swing.JFrame {
+public class Home extends javax.swing.JFrame implements UsersStatusListener {
     
-    private final Socket clientSocket;
-    private final String user;
+    private final User user;
+    private final String userName;
     
-    public Home(Socket clientSocket, String user) {
-        this.clientSocket = clientSocket;
+    public Home(User user, String userName) {
         this.user = user;
+        this.userName = userName;
         initComponents();
     }
 
@@ -29,7 +26,6 @@ public class Home extends javax.swing.JFrame {
         listModel_contatos = new javax.swing.DefaultListModel();
         pn_principal = new javax.swing.JPanel();
         lb_titulo = new javax.swing.JLabel();
-        bt_atualizar = new javax.swing.JButton();
         bt_conversar = new javax.swing.JButton();
         scroll_list_contatos = new javax.swing.JScrollPane();
         list_contatos = new javax.swing.JList<>();
@@ -39,14 +35,11 @@ public class Home extends javax.swing.JFrame {
         setMinimumSize(new java.awt.Dimension(600, 480));
         setResizable(false);
         addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowActivated(java.awt.event.WindowEvent evt) {
-                formWindowActivated(evt);
-            }
-            public void windowClosed(java.awt.event.WindowEvent evt) {
-                formWindowClosed(evt);
-            }
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
+            }
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
             }
         });
 
@@ -54,14 +47,10 @@ public class Home extends javax.swing.JFrame {
         pn_principal.setLayout(null);
 
         lb_titulo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lb_titulo.setText("< Usuário : " + user + " >");
+        lb_titulo.setText("< Usuário : " + userName + " >");
         lb_titulo.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         pn_principal.add(lb_titulo);
-        lb_titulo.setBounds(10, 10, 380, 40);
-
-        bt_atualizar.setText("Atualizar Contatos");
-        pn_principal.add(bt_atualizar);
-        bt_atualizar.setBounds(405, 10, 185, 40);
+        lb_titulo.setBounds(10, 10, 580, 40);
 
         bt_conversar.setText("Abrir Conversa");
         pn_principal.add(bt_conversar);
@@ -91,54 +80,16 @@ public class Home extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        try {
-            SocketStream.send(clientSocket, ClientRequest.LOGOUT);
-        }
-        catch (IOException ex) {
-            Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        user.logout();
     }//GEN-LAST:event_formWindowClosing
 
-    private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
         new Thread(() -> {
-            try {
-                ServerMessage serverMessage;
-
-                while (true)
-                {
-                    serverMessage = (ServerMessage) SocketStream.receive(clientSocket);
-                    System.out.println("Mensagem recebida");
-
-                    switch (serverMessage)
-                    {
-                        case USER_LOGON:
-                            String userJoined = (String) SocketStream.receive(clientSocket);
-                            listModel_contatos.addElement(userJoined);
-                            break;
-                        case USER_LOGOFF:
-                            String userLeft = (String) SocketStream.receive(clientSocket);
-                            listModel_contatos.removeElement(userLeft);
-                            break;
-                    }
-                }
-                
-                //System.out.println("Conexão encerrada.");
-            }
-            catch (IOException ex) {
-                Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            catch (ClassNotFoundException ex) {
-                Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            user.listenToServer(this);
         }).start();
-    }//GEN-LAST:event_formWindowActivated
-
-    private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
-        
-    }//GEN-LAST:event_formWindowClosed
+    }//GEN-LAST:event_formWindowOpened
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton bt_atualizar;
     private javax.swing.JButton bt_conversar;
     private javax.swing.JLabel lb_titulo;
     private javax.swing.DefaultListModel listModel_contatos;
@@ -146,5 +97,15 @@ public class Home extends javax.swing.JFrame {
     private javax.swing.JPanel pn_principal;
     private javax.swing.JScrollPane scroll_list_contatos;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void userOnline(String name) {
+        listModel_contatos.addElement(name);
+    }
+
+    @Override
+    public void userOffline(String name) {
+        listModel_contatos.removeElement(name);
+    }
 
 }

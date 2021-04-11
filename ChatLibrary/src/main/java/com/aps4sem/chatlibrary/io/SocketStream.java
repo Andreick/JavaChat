@@ -1,4 +1,4 @@
-package com.aps4sem.chatlibrary;
+package com.aps4sem.chatlibrary.io;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -7,7 +7,7 @@ import java.net.Socket;
 
 public class SocketStream
 {
-    public static void send(Socket socket, Object data) throws IOException
+    /*public static void send(Socket socket, Object data) throws IOException
     {
         ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
         out.writeObject(data);
@@ -18,5 +18,5 @@ public class SocketStream
     {
         ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
         return in.readObject();
-    }
+    }*/
 }

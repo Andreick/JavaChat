@@ -1,4 +1,4 @@
-package com.aps4sem.chatlibrary;
+package com.aps4sem.chatlibrary.io;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

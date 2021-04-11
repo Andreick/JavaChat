@@ -1,18 +1,18 @@
 package com.aps4sem.chatclient;
 
-import com.aps4sem.chatlibrary.*;
-import java.io.IOException;
-import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.aps4sem.chatclient.classes.User;
+import com.aps4sem.chatclient.exceptions.LoginAlreadyInUse;
+import com.aps4sem.chatclient.exceptions.LoginDenied;
+import com.aps4sem.chatclient.screens.Home;
+import java.net.ConnectException;
 import javax.swing.JOptionPane;
 
-public class Login extends javax.swing.JFrame {
+public class ClientMain extends javax.swing.JFrame {
 
-    private static final String SERVER_IP = "127.0.0.1";
-    private static final int SERVER_PORT = 9090;
+    private final String SERVER_IP = "127.0.0.1";
+    private final int SERVER_PORT = 9090;
     
-    public Login() {
+    public ClientMain() {
         initComponents();
     }
 
@@ -90,60 +90,29 @@ public class Login extends javax.swing.JFrame {
     private void bt_conectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_conectarActionPerformed
         
         try {
-            Socket clientSocket = new Socket(SERVER_IP, SERVER_PORT);
-            
-            String user = tf_usuario.getText();
+            String userName = tf_usuario.getText();
             String password = tf_senha.getText();
             
-            SocketStream.send(clientSocket, ClientRequest.LOGIN);
-            SocketStream.send(clientSocket, new String[] {user, password});
+            User user = new User(SERVER_IP, SERVER_PORT, userName, password);
             
-            ServerMessage response = (ServerMessage) SocketStream.receive(clientSocket);
-            
-            switch (response)
-            {
-                case LOGIN_ALLOWED:
-                    new Home(clientSocket, user).setVisible(true);
-                    this.dispose();
-                    break;
-                case LOGIN_DENIED:
-                    JOptionPane.showMessageDialog(null, "Usuário ou senha inválidos.", "Erro", JOptionPane.ERROR_MESSAGE);
-                    break;
-            }
-            
-            tf_usuario.setText("");
-            tf_senha.setText("");
+            new Home(user, userName).setVisible(true);
+            this.dispose();
         }
-        catch (IOException ex) {
-            JOptionPane.showMessageDialog(null, "Verifique se o servidor está em execução!", "Erro", JOptionPane.ERROR_MESSAGE);
+        catch (ConnectException ex) {
+            JOptionPane.showMessageDialog(this, "Verifique se o servidor está em execução!", "Erro", JOptionPane.ERROR_MESSAGE);
         }
-        catch (ClassNotFoundException ex) {
-            Logger.getLogger(Login.class.getName()).log(Level.SEVERE, null, ex);
+        catch (LoginDenied ex) {
+            JOptionPane.showMessageDialog(this, "Usuário ou senha inválidos!", "Atenção", JOptionPane.WARNING_MESSAGE);
+        }
+        catch (LoginAlreadyInUse ex) {
+            JOptionPane.showMessageDialog(this, "Este usuário já está logado no servidor.", "Atenção", JOptionPane.WARNING_MESSAGE);
         }
     }//GEN-LAST:event_bt_conectarActionPerformed
 
-    public static void main(String args[]) {
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Metal".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        java.awt.EventQueue.invokeLater(() -> {
-            new Login().setVisible(true);
-        });
+    public static void main(String[] args) {
+        new ClientMain().setVisible(true);
     }
-
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton bt_conectar;
     private javax.swing.JLabel lb_senha;
