@@ -1,6 +1,6 @@
 package com.aps4sem.chatserver;
 
-import com.aps4sem.chatserver.runnables.ClientHandler;
+import com.aps4sem.chatserver.runnables.ClientListener;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
@@ -20,11 +20,11 @@ public class ServerMain {
 
             while (true)
             {
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("[SERVIDOR] Novo cliente conectado.");
+                Socket clientConnection = serverSocket.accept();
+                System.out.println("[SERVIDOR] Novo cliente conectado: " + clientConnection.getRemoteSocketAddress());
 
-                ClientHandler clientHandler = new ClientHandler(clientSocket);
-                new Thread(clientHandler).start();
+                ClientListener clientListener = new ClientListener(clientConnection);
+                new Thread(clientListener).start();
             }
         }
         catch (BindException ex) {

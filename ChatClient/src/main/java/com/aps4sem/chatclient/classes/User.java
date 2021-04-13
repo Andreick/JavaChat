@@ -19,8 +19,46 @@ public class User {
     private Socket clientSocket;
     private SocketOutputStream out;
     private SocketInputStream in;
+        
+    public User(String serverIP, int serverPort, String userName, String password) throws ConnectException, LoginDenied, LoginAlreadyInUse
+    {
+        try {
+            clientSocket = new Socket(serverIP, serverPort);
+            System.out.println("Porta aberta: " + clientSocket.getLocalPort());
+            
+            out = new SocketOutputStream(clientSocket);
+            in = new SocketInputStream(clientSocket);
+            
+            out.send(ClientRequest.LOGIN);
+            out.send(new String[] {userName, password});
+            
+            ServerMessage response = (ServerMessage) in.receive();
+            
+            if (response != ServerMessage.LOGIN_ALLOWED)
+            {
+                closeSocket();
+                
+                switch (response)
+                {
+                    case LOGIN_DENIED:
+                        throw new LoginDenied();
+                    case LOGIN_IN_USE:
+                        throw new LoginAlreadyInUse();
+                    default:
+                        throw new UnknownServerMessage(response);
+                }
+            }
+        }
+        catch (ConnectException ex) {
+            throw ex;
+        }
+        catch (IOException | ClassNotFoundException ex) {
+            Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
+            closeSocket();
+        }
+    }
     
-    public User(String serverIP, int serverPort, String userName, String password) throws LoginDenied, LoginAlreadyInUse, ConnectException
+    /*public User(String serverIP, int serverPort, String userName, String password)
     {
         try {
             clientSocket = new Socket(serverIP, serverPort);
@@ -34,23 +72,35 @@ public class User {
             
             ServerMessage response = (ServerMessage) in.receive();
             
-            if (response == ServerMessage.LOGIN_DENIED) throw new LoginDenied("Usuário ou senha inválidos");
-            if (response == ServerMessage.LOGIN_IN_USE) throw new LoginAlreadyInUse();
-            if (response != ServerMessage.LOGIN_ALLOWED) throw new UnknownServerMessage(response);
+            if (response != ServerMessage.LOGIN_ALLOWED)
+            {
+                switch (response)
+                {
+                    case LOGIN_DENIED:
+                        break;
+                    case LOGIN_IN_USE:
+                        break;
+                    default:
+                        throw new UnknownServerMessage(response);
+                }
+                
+                closeSocket();
+            }
         }
         catch (ConnectException ex) {
-            throw ex;
+            closeSocket();
         }
         catch (IOException | ClassNotFoundException ex) {
             Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
             closeSocket();
         }
-    }
+    }*/
     
     private void closeSocket()
     {
         try {
             clientSocket.close();
+            System.out.println("Porta fechada: " + clientSocket.getLocalPort());
         } catch (IOException ex) {
             Logger.getLogger(User.class.getName()).log(Level.SEVERE, "Erro ao fechar o soquete", ex);
         }
@@ -85,6 +135,9 @@ public class User {
         catch (IOException | ClassNotFoundException ex) {
             Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
             closeSocket();
+        } catch (Exception ex) {
+            Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
+            closeSocket();
         }
     }
     
@@ -97,4 +150,18 @@ public class User {
             closeSocket();
         }
     }
+
+    /*@Override
+    public void run() {
+        try {
+            out = new SocketOutputStream(clientSocket);
+            in = new SocketInputStream(clientSocket);
+            
+            return;
+            
+            String cu;
+        } catch (IOException ex) {
+            Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }*/
 }
